@@ -22,8 +22,8 @@ public class RootShellCmd {
     private static int xD = 235;
     private static int yD = 315;
     private static String swipeCmd = "input swipe %s %s %s %s %s";
-    private static String swipeDownCmd = "input swipe 120 90 120 288 1000";
-    private static String swipeUpCmd = "input swipe 120 288 120 90 1000";
+    private static String swipeDownCmd = "input swipe 120 110 120 206 500";
+    private static String swipeUpCmd = "input swipe 120 260 120 110 500";
     private static String swipeRightCmd = "input swipe 24 160 216 160 500";
     private static String swipeLeftCmd = "input swipe 216 160 24 160 500";
 
