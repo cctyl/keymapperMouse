@@ -33,18 +33,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class MainActivity extends AppCompatActivity {
 
-
     private static final String TAG = "MainActivity";
-    private int mouseX = 0;
-    private int mouseY = 0;
-    private Instrumentation instrumentation;
-
-
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
-
-    public void runAsync(Runnable runnable) {
-        executorService.submit(runnable);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,15 +44,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         startFloatView();
-
-
-        checkAndOpenFuzhu();
-
-
-
-
-        // 初始化Instrumentation对象
-        instrumentation = new Instrumentation();
     }
 
     private void startFloatView() {
@@ -74,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkAndOpenFuzhu() {
-
         AccessibilityManager am = (AccessibilityManager) this.getSystemService((ACCESSIBILITY_SERVICE));
         List<AccessibilityServiceInfo> serviceinfos = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC);
         String id = null;
@@ -88,9 +67,8 @@ public class MainActivity extends AppCompatActivity {
         }
         if (!isServiceOpen) {
             Toast.makeText(getApplicationContext(), "xxx辅助功能未开启!", Toast.LENGTH_SHORT).show();
-            applyRoot();
             openFuzhu();
-        }else {
+        } else {
             Toast.makeText(getApplicationContext(), "辅助功能已开启", Toast.LENGTH_SHORT).show();
         }
     }
@@ -105,12 +83,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void applyRoot() {
-        //申请root权限的
-//        String apkRoot="chmod 777 "+getPackageCodePath();
-//        ALPermissionManager .RootCommand(apkRoot);
-    }
-
     /**
      * 开启辅助功能
      */
@@ -118,90 +90,19 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
-
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-
         Log.d(TAG, "按下按键，keyCode=" + keyCode);
         Log.d(TAG, event.toString());
-
         return super.onKeyDown(keyCode, event);
     }
 
+
     @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        Log.d(TAG, "dispatchKeyEvent: " + mouseX + "," + mouseY);
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            switch (event.getKeyCode()) {
-                case KeyEvent.KEYCODE_DPAD_UP:
-                    // 向上移动鼠标
-                    mouseY -= 10;
-                    break;
-                case KeyEvent.KEYCODE_DPAD_DOWN:
-                    // 向下移动鼠标
-                    mouseY += 10;
-                    break;
-                case KeyEvent.KEYCODE_DPAD_LEFT:
-                    // 向左移动鼠标
-                    mouseX -= 10;
-                    break;
-                case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    // 向右移动鼠标
-                    mouseX += 10;
-                    break;
-                case KeyEvent.KEYCODE_ENTER:
-
-                    Log.d(TAG, "按下屏幕: ");
-
-                    runAsync(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                // 将鼠标移动到指定位置
-                                instrumentation.sendPointerSync(MotionEvent.obtain(
-                                        SystemClock.uptimeMillis(),
-                                        SystemClock.uptimeMillis(),
-                                        MotionEvent.ACTION_MOVE,
-                                        mouseX,
-                                        mouseY,
-                                        0
-                                ));
-
-                                // 模拟点击屏幕
-                                instrumentation.sendPointerSync(MotionEvent.obtain(
-                                        SystemClock.uptimeMillis(),
-                                        SystemClock.uptimeMillis(),
-                                        MotionEvent.ACTION_DOWN,
-                                        mouseX,
-                                        mouseY,
-                                        0
-                                ));
-                                instrumentation.sendPointerSync(MotionEvent.obtain(
-                                        SystemClock.uptimeMillis(),
-                                        SystemClock.uptimeMillis(),
-                                        MotionEvent.ACTION_UP,
-                                        mouseX,
-                                        mouseY,
-                                        0
-                                ));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-
-                    break;
-            }
-        }
-
-
-
-
-        return super.dispatchKeyEvent(event);
+    protected void onResume() {
+        super.onResume();
+        checkAndOpenFuzhu();
     }
-
-
-
 }

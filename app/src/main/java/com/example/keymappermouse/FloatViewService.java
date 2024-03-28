@@ -5,6 +5,7 @@ import android.app.Instrumentation;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.os.IBinder;
@@ -32,18 +33,12 @@ public class FloatViewService extends Service {
     private static final String TAG = "FloatViewService";
     private FrameLayout mFloatLayout;
     private WindowManager.LayoutParams wmParams;
-    private WindowManager mWindowManager, wm;
+    private WindowManager mWindowManager;
     private Button mFloatView;
     private int screenWidth, screenHeight;
     private View menuView;
-    private DisplayMetrics outMetrics;
-    private WindowManager.LayoutParams menuWmParams;
-    private final int LEFT_FLAG   = 0;
-    private final int TOP_FLAG    = 1;
-    private final int BOTTOM_FLAG = 2;
-    private final int RIGHT_FLAG  = 3;
+
     private int mTouchSlop;
-    private boolean isClick;
     public static FloatViewService INSTANCE;
 
     @Override
@@ -53,75 +48,100 @@ public class FloatViewService extends Service {
         INSTANCE = this;
         DisplayMetrics dm = FloatViewService.this.getResources().getDisplayMetrics();
 
-        screenWidth  = dm.widthPixels;
+        screenWidth = dm.widthPixels;
         screenHeight = dm.heightPixels - statuBarHeight(FloatViewService.this) - mFloatView.getMeasuredHeight() / 2;
-        mTouchSlop   = ViewConfiguration.get(FloatViewService.this).getScaledTouchSlop();
+
+        Log.d(TAG, "screenWidth= " + screenWidth + "," + "screenHeight=" + screenHeight);
+
+        Log.d(TAG, "measuredHeight(): "+mFloatView.getMeasuredHeight()+", MeasuredWidth="+mFloatView.getMeasuredWidth());
+        RootShellCmd.xD = screenWidth;
+        RootShellCmd.yD = screenHeight;
+        RootShellCmd.statuBarHeight = statuBarHeight(FloatViewService.this);
+        RootShellCmd.measuredHeight = mFloatView.getMeasuredHeight();
+        RootShellCmd.measuredWidth = mFloatView.getMeasuredWidth();
+        mTouchSlop = ViewConfiguration.get(FloatViewService.this).getScaledTouchSlop();
 
     }
 
-    public void updatPosition(int distanceX,int distanceY){
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        DisplayMetrics dm = FloatViewService.this.getResources().getDisplayMetrics();
+
+        screenWidth = dm.widthPixels;
+
+        // 检查屏幕方向是否发生了改变
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Log.d(TAG, "切换到横屏");
+            // 处理横屏逻辑
+            screenHeight = dm.heightPixels  - mFloatView.getMeasuredHeight() / 2;
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            Log.d(TAG, "切换到竖屏");
+            // 处理竖屏逻辑
+            screenHeight = dm.heightPixels - statuBarHeight(FloatViewService.this) - mFloatView.getMeasuredHeight() / 2;
+        }
+
+
+        RootShellCmd.xD = screenWidth;
+        RootShellCmd.yD = screenHeight;
+        RootShellCmd.statuBarHeight = 0;
+        RootShellCmd.measuredHeight = mFloatView.getMeasuredHeight();
+        RootShellCmd.measuredWidth = mFloatView.getMeasuredWidth();
+
+        Log.d(TAG, "切换后：screenWidth= " + screenWidth + "," + "screenHeight=" + screenHeight+",statuBarHeight= "+RootShellCmd.statuBarHeight);
+
+        // 根据需要处理其他配置变更，如屏幕尺寸、键盘可用性等
+    }
+
+    public void updatPosition(int distanceX, int distanceY) {
         wmParams.x = wmParams.x - distanceX;
         wmParams.y = wmParams.y - distanceY;
 
-        // 边界检查
-//        if (wmParams.x < 0) {
-//            wmParams.x = 0; // 限制 x 值不小于 0
-//        } else if (wmParams.x + mFloatLayout.getWidth() > screenWidth) {
-//            wmParams.x = screenWidth - mFloatLayout.getWidth(); // 限制 x 值不超过屏幕宽度减去 View 的宽度
-//        }
-//
-//        if (wmParams.y < 0) {
-//            wmParams.y = 0; // 限制 y 值不小于 0
-//        } else if (wmParams.y + mFloatLayout.getHeight() > screenHeight) {
-//            wmParams.y = screenHeight - mFloatLayout.getHeight(); // 限制 y 值不超过屏幕高度减去 View 的高度
-//        }
 
         // 边界检查
         if (wmParams.x < 0) {
             wmParams.x = 0; // 限制 x 值不小于 0
-        } else if (wmParams.x >240) {
-            wmParams.x =40;
+        } else if (wmParams.x > screenWidth) {
+            wmParams.x = screenWidth;
         }
 
         if (wmParams.y < 0) {
             wmParams.y = 0; // 限制 y 值不小于 0
-        } else if (wmParams.y >292){
-            wmParams.y = 292;
+        } else if (wmParams.y > screenHeight) {
+            wmParams.y = screenHeight;
         }
         mWindowManager.updateViewLayout(mFloatLayout, wmParams);
     }
 
 
-    public int[] printPosition(){
-        int absoluteX =wmParams. x ;
-
-        int absoluteY =wmParams. y ;
-
-        Log.d(TAG, absoluteX+","+absoluteY);
-
-        return new int[]{absoluteX,absoluteY};
+    public int[] printPosition() {
+        int absoluteX = wmParams.x;
+        int absoluteY = wmParams.y;
+        //此处的实际位置，与屏幕位置，存在差距
+        //差距在于，y方向少了20的状态栏高度，以及鼠标自身的10高度
+        //这里获得的0,0 实际是0,20
+        Log.d(TAG, (screenWidth-absoluteX) + "," + (screenHeight- absoluteY));
+        return new int[]{absoluteX, absoluteY};
     }
 
     private void createFloatView() {
         wmParams = new WindowManager.LayoutParams();
-        mWindowManager   = (WindowManager) FloatViewService.this.getSystemService(Context.WINDOW_SERVICE);
+        mWindowManager = (WindowManager) FloatViewService.this.getSystemService(Context.WINDOW_SERVICE);
 
-        wmParams.type    = LayoutParams.TYPE_PHONE;
-        wmParams.format  = PixelFormat.RGBA_8888;
-        wmParams.flags   = LayoutParams.FLAG_NOT_FOCUSABLE;
+        wmParams.type = LayoutParams.TYPE_PHONE;
+        wmParams.format = PixelFormat.RGBA_8888;
+        wmParams.flags = LayoutParams.FLAG_NOT_FOCUSABLE;
         wmParams.gravity = Gravity.RIGHT | Gravity.BOTTOM;
         wmParams.windowAnimations = android.R.style.Animation_Dialog;
 
-        wmParams.x = 0;
-        wmParams.y = 150;
-        wmParams.width  = WindowManager.LayoutParams.WRAP_CONTENT;
+        wmParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
         wmParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
 
         LayoutInflater inflater = LayoutInflater.from(FloatViewService.this);
         mFloatLayout = (FrameLayout) inflater.inflate(R.layout.floatball, null);
         mWindowManager.addView(mFloatLayout, wmParams);
 
-        mFloatView   = (Button) mFloatLayout.findViewById(R.id.float_image);
+        mFloatView = mFloatLayout.findViewById(R.id.float_image);
 
         mFloatLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -129,48 +149,10 @@ public class FloatViewService extends Service {
         int screenWidth = displayMetrics.widthPixels;
         int screenHeight = displayMetrics.heightPixels;
 
-        Log.d(TAG, screenWidth+","+screenHeight);
+        Log.d(TAG, screenWidth + "," + screenHeight);
 
     }
 
-
-
-    private void createMenuView(int mGravity) {
-        if (wm == null)           wm = (WindowManager) FloatViewService.this.getSystemService(Context.WINDOW_SERVICE);
-        if (menuWmParams == null) menuWmParams = new WindowManager.LayoutParams();
-
-        menuWmParams.type   = WindowManager.LayoutParams.TYPE_PHONE;
-        menuWmParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        menuWmParams.flags |= WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
-        menuWmParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
-        menuWmParams.windowAnimations = android.R.style.Animation_Dialog;
-
-        if(outMetrics == null) outMetrics = new DisplayMetrics();
-
-        menuWmParams.x = outMetrics.widthPixels;
-        menuWmParams.y = outMetrics.heightPixels;
-
-        menuWmParams.width  = WindowManager.LayoutParams.WRAP_CONTENT;
-        menuWmParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        menuWmParams.format = PixelFormat.RGBA_8888;
-        wm.addView(menuView, menuWmParams);
-    }
-
-
-
-
-    private OnTouchListener menuTouch = new OnTouchListener() {
-        @Override
-        public boolean onTouch(View arg0, MotionEvent event) {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_OUTSIDE:
-                    mFloatLayout.setVisibility(View.VISIBLE);
-                    mRemoveView(menuView);
-                    break;
-            }
-            return false;
-        }
-    };
 
     void mRemoveView(View v) {
         if (mWindowManager != null && v != null && v.isShown())
@@ -178,18 +160,14 @@ public class FloatViewService extends Service {
     }
 
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
         mRemoveView(mFloatLayout);
         mRemoveView(menuView);
-
-        wmParams       = null;
+        wmParams = null;
         mWindowManager = null;
-
-        menuWmParams = null;
-        menuView     = null;
+        menuView = null;
     }
 
     @Nullable
@@ -206,9 +184,6 @@ public class FloatViewService extends Service {
         }
         return result;
     }
-
-
-
 
 
 }

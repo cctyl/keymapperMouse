@@ -37,6 +37,7 @@
             android:name=".FloatViewService"
             android:enabled="true"
             android:exported="true"
+            android:configChanges="orientation|screenSize"
         >
         </service>
 

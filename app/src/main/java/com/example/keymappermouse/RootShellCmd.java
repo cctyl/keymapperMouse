@@ -19,31 +19,42 @@ public class RootShellCmd {
     private static final String TAG = "RootShellCmd";
 
 
-    private static int xD = 235;
-    private static int yD = 315;
+    public static int xD = 235;
+    public static int yD = 315;
+    //状态栏高度
+    public static int statuBarHeight = 20;
+    //鼠标宽高
+    public static int measuredHeight = 10;
+    public static int measuredWidth = 10;
+    public static boolean landscape = false;
+
     private static String swipeCmd = "input swipe %s %s %s %s %s";
-    private static String swipeDownCmd = "input swipe 120 110 120 206 500";
-    private static String swipeUpCmd = "input swipe 120 260 120 110 500";
-    private static String swipeRightCmd = "input swipe 24 160 216 160 500";
-    private static String swipeLeftCmd = "input swipe 216 160 24 160 500";
+    private static String swipeDownCmd = "input swipe %s 110 %s 206 500";
+    private static String swipeUpCmd = "input swipe %s 260 %s 110 500";
+    private static String swipeRightCmd = "input swipe 24 %s 216 %s 500";
+    private static String swipeLeftCmd = "input swipe 216 %s 24 %s 500";
 
-    public static void swipeUp() {
-        ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(swipeUpCmd, true);
+    public static void swipeUp(int x) {
+        x = xD - x;
+        ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(String.format(swipeUpCmd,x,x), true);
         Log.d(TAG, " 向上滑动"+ serviceShellCommandResult);
     }
 
-    public static void swipeRight() {
-        ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(swipeRightCmd, true);
+    public static void swipeRight(int y) {
+        y = yD - y;
+        ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(String.format(swipeRightCmd,y,y), true);
         Log.d(TAG, " 向上滑动"+ serviceShellCommandResult);
     }
 
-    public static void swipeLeft() {
-        ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(swipeLeftCmd, true);
+    public static void swipeLeft(int y) {
+        y = yD - y;
+        ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(String.format(swipeLeftCmd,y,y), true);
         Log.d(TAG, " 向上滑动"+ serviceShellCommandResult);
     }
 
-    public static void swipeDown() {
-        ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(swipeDownCmd, true);
+    public static void swipeDown(int x) {
+        x = xD - x;
+        ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(String.format(swipeDownCmd,x,x), true);
         Log.d(TAG, " 向下滑动"+ serviceShellCommandResult);
     }
 
@@ -55,8 +66,13 @@ public class RootShellCmd {
      */
     public static void simulateTap(int x, int y) {
 
-        x = xD - x;
-        y = yD - y;
+        x = xD - x- (measuredWidth/2);
+        if (landscape){
+            y = yD - y+(measuredHeight/2);
+        }else {
+            y = yD - y+statuBarHeight+(measuredHeight/2);
+        }
+
         String format = String.format(swipeCmd, x, y, x, y, 300);
         ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(format, true);
         Log.d(TAG, format+" 点击了： " + x + "," + y + "，执行结果为：" + serviceShellCommandResult);
