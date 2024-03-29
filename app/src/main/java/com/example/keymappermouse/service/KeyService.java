@@ -1,35 +1,26 @@
-package com.example.keymappermouse;
+package com.example.keymappermouse.service;
 
-import static android.view.KeyEvent.ACTION_DOWN;
 import static android.view.KeyEvent.ACTION_UP;
 import static android.view.KeyEvent.KEYCODE_BACK;
-import static android.view.KeyEvent.KEYCODE_CALL;
 import static android.view.KeyEvent.KEYCODE_MENU;
 import static android.view.KeyEvent.KEYCODE_STAR;
 
 import android.accessibilityservice.AccessibilityService;
-import android.app.Instrumentation;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.media.AudioManager;
-import android.os.SystemClock;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.accessibility.AccessibilityEvent;
 
-import com.example.keymappermouse.util.MyFunction;
+import com.example.keymappermouse.util.Function;
+import com.example.keymappermouse.util.RootShellCmd;
 import com.example.keymappermouse.util.ToastUtil;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class KeyService extends AccessibilityService {
     private static final String TAG = "MyService";
@@ -49,13 +40,15 @@ public class KeyService extends AccessibilityService {
     private List<Integer> ignoreKeyList = Arrays.asList(
             KEYCODE_BACK,
             KEYCODE_MENU,
-
             KEYCODE_STAR
     );
 
+    /**
+     * 是否开启按键映射
+     */
+    private boolean openMapper = true;
     private int modeIndex = 0;
-    private int modeLimit = 2;
-    private List<MyFunction<KeyEvent, Boolean>> modeArr = Arrays.asList(
+    private List<Function<KeyEvent, Boolean>> modeArr = Arrays.asList(
             //开启开关
             (keyEvent) -> {
                 int key = keyEvent.getKeyCode();
@@ -78,7 +71,6 @@ public class KeyService extends AccessibilityService {
                             } else {
                                 distanceX -= 1;
                             }
-
                             break;
 
                         case KeyEvent.KEYCODE_DPAD_RIGHT:
@@ -105,7 +97,6 @@ public class KeyService extends AccessibilityService {
                             break;
 
                         case KeyEvent.KEYCODE_8:
-
                             //向下滑动
                             RootShellCmd.swipeUp(position[0]);
                             break;
@@ -124,24 +115,19 @@ public class KeyService extends AccessibilityService {
                             RootShellCmd.swipeLeft(position[1]);
                             break;
                         case KeyEvent.KEYCODE_ENTER:
-
                             Log.d(TAG, "按下屏幕: ");
-
-                            distanceX += 1;
                             runAsync(() -> {
                                         Log.d(TAG, "点击: ");
                                         RootShellCmd.simulateTap(position[0], position[1]);
                                     }
                             );
-
-
                             try {
                                 Thread.sleep(200);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                            FloatViewService.INSTANCE.updatPosition(distanceX * linming, 0);
-
+                            distanceX += 1;
+                            FloatViewService.INSTANCE.updatPosition(distanceX, 0);
                             return true;
 
                         case KeyEvent.KEYCODE_7:
@@ -152,7 +138,6 @@ public class KeyService extends AccessibilityService {
                             break;
                         default:
                             return super.onKeyEvent(keyEvent);
-
                     }
 
                     FloatViewService.INSTANCE.updatPosition(distanceX * linming, distanceY * linming);
@@ -160,10 +145,6 @@ public class KeyService extends AccessibilityService {
                     FloatViewService.INSTANCE.printPosition();
                 }
                 return true;
-            },
-            //关闭开关
-            (keyEvent) -> {
-                return super.onKeyEvent(keyEvent);
             },
 
             //地下城模式
@@ -175,7 +156,6 @@ public class KeyService extends AccessibilityService {
 
     private String[] toastArr = {
             "开启按键映射",
-            "关闭按键映射",
             "地下城模式"
     };
 
@@ -191,7 +171,6 @@ public class KeyService extends AccessibilityService {
         int action = event.getAction();
         Log.d(TAG, " MyService onKeyEvent " + event);
 
-
         //按下# 号键，表示开启穿透
         if (key == KeyEvent.KEYCODE_POUND && action == KeyEvent.ACTION_DOWN) {
             penetrate = true;
@@ -202,7 +181,6 @@ public class KeyService extends AccessibilityService {
         //松开#号键表示关闭穿透
         if (key == KeyEvent.KEYCODE_POUND && action == KeyEvent.ACTION_UP) {
             penetrate = false;
-
             //如果按下时间和松开时间很短，认为是正常按下#,则穿透
             long interval = System.currentTimeMillis() - pressPenetrateTime;
             Log.d(TAG, "# 按下时长为： " + interval);
@@ -218,19 +196,22 @@ public class KeyService extends AccessibilityService {
             Log.d(TAG, "穿透了 ");
             return super.onKeyEvent(event);
         }
-
         if (key == KeyEvent.KEYCODE_CALL && event.getAction() == ACTION_UP) {
-            Log.d(TAG, "切换模式了 ");
-            modeIndex = (++modeIndex) % modeLimit;
-            ToastUtil.show(toastArr[modeIndex]);
+            openMapper = !openMapper;
+            ToastUtil.show("按键映射：" + (openMapper ? "开" : "关"));
             return true;
         }
-
         Log.d(TAG, "走处理了 ");
-        MyFunction<KeyEvent, Boolean> function = modeArr.get(modeIndex);
-        return function.apply(event);
-
-
+        if (openMapper) {
+            Log.d(TAG, "切换模式了 ");
+            ++modeIndex;
+            ToastUtil.show(toastArr[modeIndex]);
+            Function<KeyEvent, Boolean> function = modeArr.get(modeIndex);
+            return function.apply(event);
+        } else {
+            //关闭的情况下，直接返回
+            return super.onKeyEvent(event);
+        }
     }
 
 
@@ -238,18 +219,16 @@ public class KeyService extends AccessibilityService {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-
         // 检查屏幕方向是否发生了改变
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             Log.d(TAG, "切换到横屏");
-            landscape=true;
+            landscape = true;
             // 处理横屏逻辑
         } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             Log.d(TAG, "切换到竖屏");
             // 处理竖屏逻辑
-            landscape=false;
+            landscape = false;
         }
-
 
     }
 

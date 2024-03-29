@@ -1,6 +1,6 @@
 package com.example.keymappermouse.util;
 
 @FunctionalInterface
-public interface MyFunction<T, R> {
+public interface Function<T, R> {
     R apply(T t);
 }

@@ -1,35 +1,23 @@
-package com.example.keymappermouse;
+package com.example.keymappermouse.act;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.accessibilityservice.AccessibilityServiceInfo;
-import android.app.Instrumentation;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.provider.Settings;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityManager;
-import android.webkit.WebView;
-import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.keymappermouse.R;
+import com.example.keymappermouse.service.FloatViewService;
+
 import java.util.List;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class MainActivity extends AppCompatActivity {
 

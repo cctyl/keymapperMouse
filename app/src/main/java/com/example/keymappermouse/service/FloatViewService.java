@@ -1,32 +1,26 @@
-package com.example.keymappermouse;
+package com.example.keymappermouse.service;
 
-import android.accessibilityservice.AccessibilityService;
-import android.app.Instrumentation;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
-import android.media.AudioManager;
 import android.os.IBinder;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-import android.view.accessibility.AccessibilityEvent;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+
+import com.example.keymappermouse.R;
+import com.example.keymappermouse.util.RootShellCmd;
 //import android.widget.Toast;
 
 public class FloatViewService extends Service {

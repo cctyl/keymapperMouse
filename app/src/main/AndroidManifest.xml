@@ -18,7 +18,7 @@
         android:name=".Application"
         android:theme="@style/Theme.KeymapperMouse">
         <service
-            android:name=".KeyService"
+            android:name=".service.KeyService"
             android:enabled="true"
             android:exported="true"
 
@@ -34,7 +34,7 @@
 
         </service>
         <service
-            android:name=".FloatViewService"
+            android:name=".service.FloatViewService"
             android:enabled="true"
             android:exported="true"
             android:configChanges="orientation|screenSize"
@@ -42,7 +42,7 @@
         </service>
 
         <activity
-            android:name=".MainActivity"
+            android:name=".act.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

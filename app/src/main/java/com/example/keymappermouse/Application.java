@@ -22,27 +22,10 @@ public class Application extends android.app.Application {
         return mApplication;
     }
 
-    /**
-     * 购物车中商品数量
-     */
-    private int goodsNum = 0;
-
-    public int getGoodsNum() {
-        return goodsNum;
-    }
-
-    public void setGoodsNum(int goodsNum) {
-        this.goodsNum = goodsNum;
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
         mApplication = this;
-
-
-
     }
-
 
 }

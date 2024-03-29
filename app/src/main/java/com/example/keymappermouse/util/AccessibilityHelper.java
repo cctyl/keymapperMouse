@@ -1,4 +1,4 @@
-package com.example.keymappermouse;
+package com.example.keymappermouse.util;
 
 
 import android.accessibilityservice.AccessibilityService;

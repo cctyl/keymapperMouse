@@ -1,12 +1,8 @@
-package com.example.keymappermouse;
+package com.example.keymappermouse.util;
 
 import android.util.Log;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import com.example.keymappermouse.server.SocketClient;
 
 /**
  * 用root权限执行Linux下的Shell指令
@@ -74,8 +70,14 @@ public class RootShellCmd {
         }
 
         String format = String.format(swipeCmd, x, y, x, y, 300);
-        ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(format, true);
-        Log.d(TAG, format+" 点击了： " + x + "," + y + "，执行结果为：" + serviceShellCommandResult);
+        //ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(format, true);
+        //Log.d(TAG, format+" 点击了： " + x + "," + y + "，执行结果为：" + serviceShellCommandResult);
+
+        try {
+            SocketClient.cmdQueue.put(format);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         //按下之后需要马上移动一下
 

@@ -1,4 +1,4 @@
-package com.example.keymappermouse;
+package com.example.keymappermouse.util;
 
 
 import java.io.BufferedReader;
