@@ -1,5 +1,6 @@
 package com.example.keymappermouse.service;
 
+import static android.view.KeyEvent.ACTION_DOWN;
 import static android.view.KeyEvent.ACTION_UP;
 import static android.view.KeyEvent.KEYCODE_BACK;
 import static android.view.KeyEvent.KEYCODE_MENU;
@@ -39,14 +40,14 @@ public class KeyService extends AccessibilityService {
     private boolean landscape = false;
     private List<Integer> ignoreKeyList = Arrays.asList(
             KEYCODE_BACK,
-            KEYCODE_MENU,
-            KEYCODE_STAR
+            KEYCODE_MENU
     );
 
     /**
      * 是否开启按键映射
      */
     private boolean openMapper = true;
+
     private int modeIndex = 0;
     private List<Function<KeyEvent, Boolean>> modeArr = Arrays.asList(
             //开启开关
@@ -165,6 +166,11 @@ public class KeyService extends AccessibilityService {
     private boolean penetrate = false;
     private long pressPenetrateTime = 0L;
 
+    /**
+     * call是否被按下
+     */
+    private boolean callPress = false;
+    private long callPressTime = 0L;
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
         int key = event.getKeyCode();
@@ -190,26 +196,48 @@ public class KeyService extends AccessibilityService {
                 return true;
             }
         }
+
+
         //不处理直接穿透的按键
         //按下#号键时直接穿透
         if (penetrate || ignoreKeyList.contains(key) || FloatViewService.INSTANCE == null) {
             Log.d(TAG, "穿透了 ");
             return super.onKeyEvent(event);
         }
-        if (key == KeyEvent.KEYCODE_CALL && event.getAction() == ACTION_UP) {
-            openMapper = !openMapper;
-            ToastUtil.show("按键映射：" + (openMapper ? "开" : "关"));
+
+        if (key == KeyEvent.KEYCODE_CALL && event.getAction() == ACTION_DOWN ) {
+            callPressTime = System.currentTimeMillis();
+            callPress = true;
             return true;
         }
-        Log.d(TAG, "走处理了 ");
-        if (openMapper) {
+
+        if (key == KeyEvent.KEYCODE_CALL && event.getAction() == ACTION_UP) {
+            callPress = false;
+            //快速的按，说明是切换模式
+            if (System.currentTimeMillis()-callPressTime<200){
+                openMapper = !openMapper;
+                ToastUtil.show("按键映射：" + (openMapper ? "开" : "关"));
+            }
+            return true;
+        }
+
+
+        //按下call的时候按下*，则切换模式
+        if (key == KEYCODE_STAR && event.getAction() == ACTION_DOWN && callPress){
             Log.d(TAG, "切换模式了 ");
             ++modeIndex;
             ToastUtil.show(toastArr[modeIndex]);
+            return true;
+        }
+
+
+
+        Log.d(TAG, "走处理了 ");
+        if (openMapper) {
             Function<KeyEvent, Boolean> function = modeArr.get(modeIndex);
             return function.apply(event);
         } else {
-            //关闭的情况下，直接返回
+            //关闭按键映射总开关时
             return super.onKeyEvent(event);
         }
     }
