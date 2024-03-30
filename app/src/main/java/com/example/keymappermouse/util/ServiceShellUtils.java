@@ -1,6 +1,8 @@
 package com.example.keymappermouse.util;
 
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -14,6 +16,7 @@ public class ServiceShellUtils {
     public static final String COMMAND_SH = "sh"; // 执行sh文件的命令
     public static final String COMMAND_EXIT = "exit\n"; // 退出的命令
     public static final String COMMAND_LINE_END = "\n"; // 执行命令必须加在末尾
+    private static final String TAG ="ServiceShellUtils";
 
     private ServiceShellUtils() {
         throw new AssertionError();
@@ -61,6 +64,7 @@ public class ServiceShellUtils {
         StringBuilder errorMsg = null;
         DataOutputStream os = null;
         try {
+            Log.d(TAG, ":root?"+isRoot);
             process = Runtime.getRuntime().exec(isRoot ? COMMAND_SU : COMMAND_SH);
             os = new DataOutputStream(process.getOutputStream());
             for (String command : commands) {

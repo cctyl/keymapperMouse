@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 
+import com.example.keymappermouse.server.SocketClient;
 import com.example.keymappermouse.util.Function;
 import com.example.keymappermouse.util.RootShellCmd;
 import com.example.keymappermouse.util.ToastUtil;
@@ -156,7 +157,7 @@ public class KeyService extends AccessibilityService {
     );
 
     private String[] toastArr = {
-            "开启按键映射",
+            "普通模式",
             "地下城模式"
     };
 
@@ -225,7 +226,7 @@ public class KeyService extends AccessibilityService {
         //按下call的时候按下*，则切换模式
         if (key == KEYCODE_STAR && event.getAction() == ACTION_DOWN && callPress){
             Log.d(TAG, "切换模式了 ");
-            ++modeIndex;
+            modeIndex = (++modeIndex) % toastArr.length;
             ToastUtil.show(toastArr[modeIndex]);
             return true;
         }
@@ -278,6 +279,8 @@ public class KeyService extends AccessibilityService {
     public void onCreate() {
         Log.d("key", "keyservice::onCreate");
         super.onCreate();
+
+
 
         // 获取系统音频管理器
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);

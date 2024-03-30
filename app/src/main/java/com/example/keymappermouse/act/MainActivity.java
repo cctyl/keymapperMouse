@@ -4,24 +4,34 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.keymappermouse.R;
+import com.example.keymappermouse.server.SocketClient;
 import com.example.keymappermouse.service.FloatViewService;
+import com.example.keymappermouse.util.RootShellCmd;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private Button btn_root;
+    private Button btn_fuzhu;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +41,41 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        btn_fuzhu = findViewById(R.id.btn_fuzhu);
+        btn_fuzhu.setOnClickListener(view -> {
+            checkAndOpenFuzhu();
+        });
+
+        btn_root = findViewById(R.id.btn_root);
+        btn_root.setOnClickListener(view -> {
+            SocketClient.initSocketClient();
+//            try {
+//
+//                String apkPath = getApkPath();
+//
+//                new Thread(() -> {
+//                    RootShellCmd.execCmd(" app_process -Djava.class.path="+apkPath+"  /system/bin "+getPackageName()+".server.AdbProcess ",true);
+//
+//                }).start();
+//            } catch (PackageManager.NameNotFoundException e) {
+//                e.printStackTrace();
+//            }
+        });
+
+
         startFloatView();
+    }
+
+    private String getApkPath() throws PackageManager.NameNotFoundException {
+        String packageName = getPackageName(); // 获取当前应用的包名
+            PackageManager pm = getPackageManager();
+            ApplicationInfo ai = pm.getApplicationInfo(packageName, 0); // 获取应用信息
+            String apkPath = ai.sourceDir; // 获取APK文件路径
+            Log.d("APKPath", "APK路径: " + apkPath);
+            return apkPath;
+
     }
 
     private void startFloatView() {
@@ -91,6 +135,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        checkAndOpenFuzhu();
+
     }
 }

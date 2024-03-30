@@ -60,8 +60,11 @@ public class StopbilityThread {
         //设置标记
         stop = true;
         //如果线程还在休眠，那叫醒，让他停止
-        innerThread.interrupt();
-        Log.d(TAG, innerThread.getName() + "线程终止");
+        if (innerThread!=null){
+            innerThread.interrupt();
+            Log.d(TAG, innerThread.getName() + "线程终止");
+        }
+
     }
 
 }

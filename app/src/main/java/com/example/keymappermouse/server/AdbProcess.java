@@ -13,9 +13,10 @@ public class AdbProcess {
     public static void main(String[] args) {
         // 利用looper让线程循环
         Looper.prepareMainLooper();
-        System.out.println("*****************adb server starting****************");
+        System.out.println("*****************adb server starting222****************");
         // 开一个子线程启动服务
         new Thread(SocketService::new).start();
+        Log.d(TAG, "子线程创建完成: ");
         Looper.loop();
     }
 
