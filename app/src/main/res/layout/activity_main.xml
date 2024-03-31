@@ -9,23 +9,56 @@
     android:orientation="vertical"
     >
 
-    <Button
-        android:id="@+id/btn_root"
-        android:layout_marginTop="100dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="以roo方式授权"
-        android:textSize="30sp"
-        android:gravity="center"
-        ></Button>
 
-    <Button
-        android:id="@+id/btn_fuzhu"
-        android:layout_marginTop="100dp"
+    <LinearLayout
+        android:layout_marginTop="30dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="开启辅助功能"
-        android:textSize="30sp"
-        android:gravity="center"
-        ></Button>
+        android:orientation="vertical"
+        >
+
+        <Button
+            android:id="@+id/btn_adb"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="adb模式与本地服务器建立连接"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:background="@drawable/btn_selector"
+            ></Button>
+
+
+        <Button
+            android:id="@+id/btn_adb_stop"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="断开本地adb"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:background="@drawable/btn_selector"
+            ></Button>
+
+        <Button
+            android:id="@+id/btn_root"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="root模式"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:background="@drawable/btn_selector"
+            ></Button>
+
+        <Button
+            android:id="@+id/btn_fuzhu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开启辅助功能"
+            android:textSize="30sp"
+            android:gravity="center"
+            android:background="@drawable/btn_selector"
+            ></Button>
+    </LinearLayout>
+
 </LinearLayout>

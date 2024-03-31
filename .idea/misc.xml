@@ -3,7 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/tyl/AndroidStudioProjects/keymapperMouse/app/src/main/res/drawable/btn_selector.xml" value="0.224" />
         <entry key="..\:/Users/tyl/AndroidStudioProjects/keymapperMouse/app/src/main/res/drawable/ic_launcher_background.xml" value="0.1585" />
+        <entry key="..\:/Users/tyl/AndroidStudioProjects/keymapperMouse/app/src/main/res/drawable/shape_btn.xml" value="0.224" />
+        <entry key="..\:/Users/tyl/AndroidStudioProjects/keymapperMouse/app/src/main/res/drawable/shape_btn_click.xml" value="0.224" />
         <entry key="..\:/Users/tyl/AndroidStudioProjects/keymapperMouse/app/src/main/res/layout/activity_main.xml" value="0.14895833333333333" />
         <entry key="..\:/Users/tyl/AndroidStudioProjects/keymapperMouse/app/src/main/res/layout/floatball.xml" value="0.36614583333333334" />
         <entry key="..\:/Users/tyl/AndroidStudioProjects/keymapperMouse/app/src/main/res/layout/floating_menu.xml" value="0.1875" />

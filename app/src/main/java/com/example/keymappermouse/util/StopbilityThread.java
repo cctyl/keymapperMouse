@@ -12,7 +12,7 @@ public class StopbilityThread {
     /**
      * 停止标记
      */
-    private volatile boolean stop = false;
+    public volatile boolean stop = false;
     public void start(Runnable runnable) {
         if (start) {
             return;
@@ -22,6 +22,7 @@ public class StopbilityThread {
                 return;
             }
             start = true;
+            stop = false;
         }
         innerThread = new Thread(() -> {
             while (true) {

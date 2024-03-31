@@ -30,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private Button btn_root;
     private Button btn_fuzhu;
+    private Button btn_adb;
+    private Button btn_adb_stop;
 
 
 
@@ -50,22 +52,23 @@ public class MainActivity extends AppCompatActivity {
 
         btn_root = findViewById(R.id.btn_root);
         btn_root.setOnClickListener(view -> {
-            SocketClient.initSocketClient();
-//            try {
-//
-//                String apkPath = getApkPath();
-//
-//                new Thread(() -> {
-//                    RootShellCmd.execCmd(" app_process -Djava.class.path="+apkPath+"  /system/bin "+getPackageName()+".server.AdbProcess ",true);
-//
-//                }).start();
-//            } catch (PackageManager.NameNotFoundException e) {
-//                e.printStackTrace();
-//            }
+            RootShellCmd.root = true;
         });
 
+        btn_adb = findViewById(R.id.btn_adb);
+        btn_adb.setOnClickListener(view -> {
+            RootShellCmd.root = false;
+            SocketClient.initSocketClient();
+        });
+
+        btn_adb_stop = findViewById(R.id.btn_adb_stop);
+        btn_adb_stop.setOnClickListener(view -> {
+            RootShellCmd.root = true;
+            SocketClient.disconnectSocket();
+        });
 
         startFloatView();
+
     }
 
     private String getApkPath() throws PackageManager.NameNotFoundException {

@@ -17,6 +17,7 @@ public class RootShellCmd {
 
     public static int xD = 235;
     public static int yD = 315;
+    public static boolean root = false;
     //状态栏高度
     public static int statuBarHeight = 20;
     //鼠标宽高
@@ -32,31 +33,44 @@ public class RootShellCmd {
 
     public static void swipeUp(int x) {
         x = xD - x;
-        execCmd(String.format(swipeUpCmd,x,x), true);
+        execCmd(String.format(swipeUpCmd,x,x));
     }
 
     public static void swipeRight(int y) {
         y = yD - y;
-        execCmd(String.format(swipeRightCmd,y,y), true);
+        execCmd(String.format(swipeRightCmd,y,y));
     }
 
     public static void swipeLeft(int y) {
         y = yD - y;
-        execCmd(String.format(swipeLeftCmd,y,y), true);
+        execCmd(String.format(swipeLeftCmd,y,y));
     }
 
     public static void swipeDown(int x) {
         x = xD - x;
-        execCmd(String.format(swipeDownCmd,x,x), true);
+        execCmd(String.format(swipeDownCmd,x,x));
     }
 
+
+    /**
+     * 短按
+     * @param x
+     * @param y
+     */
+    public static void simulateTap(int x, int y){
+        simulateTap(x,y,100);
+    }
+
+    public static void simulateTapLong(int x, int y){
+        simulateTap(x,y,600);
+    }
     /**
      * 模拟坐标点击
      *
      * @param x
      * @param y
      */
-    public static void simulateTap(int x, int y) {
+    public static void simulateTap(int x, int y,long tapTime) {
 
         x = xD - x- (measuredWidth/2);
         if (landscape){
@@ -65,13 +79,13 @@ public class RootShellCmd {
             y = yD - y+statuBarHeight+(measuredHeight/2);
         }
 
-        String format = String.format(swipeCmd, x, y, x, y, 100);
+        String format = String.format(swipeCmd, x, y, x, y, tapTime);
 
-        execCmd(format,false);
+        execCmd(format);
     }
 
 
-    public static void execCmd(String cmd,boolean root){
+    public static void execCmd(String cmd){
         Log.d(TAG, "执行命令: "+cmd);
         if (root){
             ServiceShellUtils.ServiceShellCommandResult serviceShellCommandResult = ServiceShellUtils.execCommand(cmd, true);

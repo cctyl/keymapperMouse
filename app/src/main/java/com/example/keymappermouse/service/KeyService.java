@@ -116,10 +116,19 @@ public class KeyService extends AccessibilityService {
                             //向下滑动
                             RootShellCmd.swipeLeft(position[1]);
                             break;
+
+                        case KeyEvent.KEYCODE_5:
+                            //长按
+                            runAsync(() -> {
+                                        Log.d(TAG, "点击: "+position[0]+","+position[1]);
+                                        RootShellCmd.simulateTapLong(position[0], position[1]);
+                                    }
+                            );
+                            break;
                         case KeyEvent.KEYCODE_ENTER:
                             Log.d(TAG, "按下屏幕: ");
                             runAsync(() -> {
-                                        Log.d(TAG, "点击: ");
+                                        Log.d(TAG, "点击: "+position[0]+","+position[1]);
                                         RootShellCmd.simulateTap(position[0], position[1]);
                                     }
                             );
@@ -230,6 +239,11 @@ public class KeyService extends AccessibilityService {
             ToastUtil.show(toastArr[modeIndex]);
             return true;
         }
+        if (key == KEYCODE_STAR && event.getAction() == ACTION_DOWN){
+            //如果只是单纯的按下*，则不处理
+            return  super.onKeyEvent(event);
+        }
+
 
 
 
