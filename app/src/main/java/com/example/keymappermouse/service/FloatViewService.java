@@ -41,50 +41,42 @@ public class FloatViewService extends Service {
         createFloatView();
         INSTANCE = this;
         DisplayMetrics dm = FloatViewService.this.getResources().getDisplayMetrics();
+        updateScreenParam(dm, null);
+        mTouchSlop = ViewConfiguration.get(FloatViewService.this).getScaledTouchSlop();
 
+    }
+
+    public void updateScreenParam(DisplayMetrics dm, Configuration newConfig) {
         screenWidth = dm.widthPixels;
-        screenHeight = dm.heightPixels - statuBarHeight(FloatViewService.this) - mFloatView.getMeasuredHeight() / 2;
+        screenHeight = dm.heightPixels;
+        if (newConfig != null) {
 
+            // 检查屏幕方向是否发生了改变
+            if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                Log.d(TAG, "切换到横屏");
+                RootShellCmd.landscape = true;
+
+            } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                Log.d(TAG, "切换到竖屏");
+                RootShellCmd.landscape = false;
+            }
+        }
         Log.d(TAG, "screenWidth= " + screenWidth + "," + "screenHeight=" + screenHeight);
 
-        Log.d(TAG, "measuredHeight(): "+mFloatView.getMeasuredHeight()+", MeasuredWidth="+mFloatView.getMeasuredWidth());
-        RootShellCmd.xD = screenWidth;
-        RootShellCmd.yD = screenHeight;
+        Log.d(TAG, "measuredHeight(): " + mFloatView.getMeasuredHeight() + ", MeasuredWidth=" + mFloatView.getMeasuredWidth());
+        RootShellCmd.screenWidth = screenWidth;
+        RootShellCmd.screenHeight = screenHeight;
         RootShellCmd.statuBarHeight = statuBarHeight(FloatViewService.this);
         RootShellCmd.measuredHeight = mFloatView.getMeasuredHeight();
         RootShellCmd.measuredWidth = mFloatView.getMeasuredWidth();
-        mTouchSlop = ViewConfiguration.get(FloatViewService.this).getScaledTouchSlop();
-
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         DisplayMetrics dm = FloatViewService.this.getResources().getDisplayMetrics();
-
-        screenWidth = dm.widthPixels;
-
-        // 检查屏幕方向是否发生了改变
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            Log.d(TAG, "切换到横屏");
-            // 处理横屏逻辑
-            screenHeight = dm.heightPixels  - mFloatView.getMeasuredHeight() / 2;
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            Log.d(TAG, "切换到竖屏");
-            // 处理竖屏逻辑
-            screenHeight = dm.heightPixels - statuBarHeight(FloatViewService.this) - mFloatView.getMeasuredHeight() / 2;
-        }
-
-
-        RootShellCmd.xD = screenWidth;
-        RootShellCmd.yD = screenHeight;
-        RootShellCmd.statuBarHeight = 0;
-        RootShellCmd.measuredHeight = mFloatView.getMeasuredHeight();
-        RootShellCmd.measuredWidth = mFloatView.getMeasuredWidth();
-
-        Log.d(TAG, "切换后：screenWidth= " + screenWidth + "," + "screenHeight=" + screenHeight+",statuBarHeight= "+RootShellCmd.statuBarHeight);
-
-        // 根据需要处理其他配置变更，如屏幕尺寸、键盘可用性等
+        updateScreenParam(dm, newConfig);
+        Log.d(TAG, "切换后：screenWidth= " + screenWidth + "," + "screenHeight=" + screenHeight + ",statuBarHeight= " + RootShellCmd.statuBarHeight);
     }
 
     public void updatPosition(int distanceX, int distanceY) {
@@ -111,11 +103,9 @@ public class FloatViewService extends Service {
     public int[] printPosition() {
         int absoluteX = wmParams.x;
         int absoluteY = wmParams.y;
-        //此处的实际位置，与屏幕位置，存在差距
-        //差距在于，y方向少了20的状态栏高度，以及鼠标自身的10高度
-        //这里获得的0,0 实际是0,20
-        Log.d(TAG, (screenWidth-absoluteX) + "," + (screenHeight- absoluteY));
-        return new int[]{absoluteX, absoluteY};
+
+        Log.d(TAG, (screenWidth - absoluteX) + "," + (screenHeight - absoluteY));
+        return new int[]{absoluteX, absoluteY, (screenWidth - absoluteX), (screenHeight - absoluteY)};
     }
 
     private void createFloatView() {
@@ -133,6 +123,19 @@ public class FloatViewService extends Service {
 
         LayoutInflater inflater = LayoutInflater.from(FloatViewService.this);
         mFloatLayout = (FrameLayout) inflater.inflate(R.layout.floatball, null);
+
+//        mFloatLayout.setClickable(false);
+//        mFloatLayout.setFocusable(false);
+//        mFloatLayout.setFocusableInTouchMode(false);
+        wmParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+        // 或者使用FLAG_NOT_FOCUSABLE防止获取焦点
+        wmParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+
+
+        mFloatLayout.setOnTouchListener((v, event) -> {
+            Log.d(TAG, "被点击了，消耗点击事件 ");
+            return false;
+        });
         mWindowManager.addView(mFloatLayout, wmParams);
 
         mFloatView = mFloatLayout.findViewById(R.id.float_image);

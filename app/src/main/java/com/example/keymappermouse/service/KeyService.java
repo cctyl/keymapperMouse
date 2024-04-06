@@ -14,7 +14,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 
-import com.example.keymappermouse.server.SocketClient;
 import com.example.keymappermouse.util.Function;
 import com.example.keymappermouse.util.RootShellCmd;
 import com.example.keymappermouse.util.ToastUtil;
@@ -49,17 +48,145 @@ public class KeyService extends AccessibilityService {
      */
     private boolean openMapper = true;
 
+    /**
+     * 上次调整灵敏度的时间
+     */
+    private long lastChangeLingmin = 0;
+
     private int modeIndex = 0;
     private List<Function<KeyEvent, Boolean>> modeArr = Arrays.asList(
             //开启开关
             (keyEvent) -> {
                 int key = keyEvent.getKeyCode();
-                if (key == prevKey) {
-                    linming++;
-                } else {
-                    prevKey = key;
-                    linming = 20;
+
+
+                int distanceX = 0;
+                int distanceY = 0;
+                if (keyEvent.getAction() == ACTION_UP) {
+                    int[] position = FloatViewService.INSTANCE.printPosition();
+                    switch (key) {
+
+
+                        case KeyEvent.KEYCODE_1:
+                            if (System.currentTimeMillis() - lastChangeLingmin >500){
+                                ToastUtil.show("当前灵敏度"+linming);
+                            }
+                            lastChangeLingmin = System.currentTimeMillis();
+                            linming-=3;
+                            linming=Math.max(0,linming);
+                            break;
+                        case KeyEvent.KEYCODE_3:
+                            if (System.currentTimeMillis() - lastChangeLingmin >500){
+                                ToastUtil.show("当前灵敏度"+linming);
+                            }
+                            lastChangeLingmin = System.currentTimeMillis();
+                            linming+=3;
+
+                            break;
+                        case KeyEvent.KEYCODE_DPAD_LEFT:
+                            if (landscape) {
+                                distanceY += 1;
+                            } else {
+                                distanceX -= 1;
+                            }
+                            break;
+
+                        case KeyEvent.KEYCODE_DPAD_RIGHT:
+                            if (landscape) {
+                                distanceY -= 1;
+                            } else {
+                                distanceX += 1;
+                            }
+                            break;
+
+                        case KeyEvent.KEYCODE_DPAD_UP:
+                            if (landscape) {
+                                distanceX -= 1;
+                            } else {
+                                distanceY -= 1;
+                            }
+                            break;
+                        case KeyEvent.KEYCODE_DPAD_DOWN:
+                            if (landscape) {
+                                distanceX += 1;
+                            } else {
+                                distanceY += 1;
+                            }
+                            break;
+
+                        case KeyEvent.KEYCODE_8:
+                            //向下滑动
+                            RootShellCmd.swipeUp(position[0], position[1]);
+                            break;
+                        case KeyEvent.KEYCODE_2:
+                            //向下滑动
+                            RootShellCmd.swipeDown(position[0], position[1]);
+                            break;
+
+                        case KeyEvent.KEYCODE_4:
+                            //向下滑动
+                            RootShellCmd.swipeRight(position[1], position[0]);
+                            break;
+
+                        case KeyEvent.KEYCODE_6:
+                            //向下滑动
+                            RootShellCmd.swipeLeft(position[1], position[0]);
+                            break;
+
+                        case KeyEvent.KEYCODE_5:
+                            //长按
+                            runAsync(() -> {
+                                        Log.d(TAG, "点击: " + position[0] + "," + position[1]);
+                                        RootShellCmd.simulateTapLong(position[0], position[1]);
+                                    }
+                            );
+                            break;
+                        case KeyEvent.KEYCODE_ENTER:
+                            Log.d(TAG, "按下屏幕: ");
+                            runAsync(() -> {
+                                        Log.d(TAG, "点击: " + position[0] + "," + position[1]);
+                                        RootShellCmd.simulateTap(position[0], position[1]);
+                                    }
+                            );
+//                            try {
+//                                Thread.sleep(500);
+//                            } catch (InterruptedException e) {
+//                                e.printStackTrace();
+//                            }
+//                            distanceX += 1;
+//                            Log.d(TAG, "按下后移动: ");
+//                            FloatViewService.INSTANCE.updatPosition(distanceX, 0);
+                            return true;
+
+                        case KeyEvent.KEYCODE_7:
+                            decreaseVolume();
+                            break;
+                        case KeyEvent.KEYCODE_9:
+                            increaseVolume();
+                            break;
+                        case KeyEvent.KEYCODE_0:
+                            RootShellCmd.recentApp();
+                            break;
+                        default:
+                            return super.onKeyEvent(keyEvent);
+                    }
+
+                    FloatViewService.INSTANCE.updatPosition(distanceX * linming, distanceY * linming);
+                    Log.d(TAG, "distanceX= " + distanceX * linming + ",distanceY=" + distanceY * linming);
+                    FloatViewService.INSTANCE.printPosition();
                 }
+                return true;
+            },
+
+            //地下城模式
+            (keyEvent) -> {
+                return super.onKeyEvent(keyEvent);
+            },
+            //测量模式
+            (keyEvent) -> {
+
+                int key = keyEvent.getKeyCode();
+                linming = 10;
 
                 int distanceX = 0;
                 int distanceY = 0;
@@ -98,76 +225,30 @@ public class KeyService extends AccessibilityService {
                             }
                             break;
 
-                        case KeyEvent.KEYCODE_8:
-                            //向下滑动
-                            RootShellCmd.swipeUp(position[0]);
-                            break;
-                        case KeyEvent.KEYCODE_2:
-                            //向下滑动
-                            RootShellCmd.swipeDown(position[0]);
-                            break;
 
-                        case KeyEvent.KEYCODE_4:
-                            //向下滑动
-                            RootShellCmd.swipeRight(position[1]);
-                            break;
-
-                        case KeyEvent.KEYCODE_6:
-                            //向下滑动
-                            RootShellCmd.swipeLeft(position[1]);
-                            break;
-
-                        case KeyEvent.KEYCODE_5:
-                            //长按
-                            runAsync(() -> {
-                                        Log.d(TAG, "点击: "+position[0]+","+position[1]);
-                                        RootShellCmd.simulateTapLong(position[0], position[1]);
-                                    }
-                            );
-                            break;
                         case KeyEvent.KEYCODE_ENTER:
-                            Log.d(TAG, "按下屏幕: ");
-                            runAsync(() -> {
-                                        Log.d(TAG, "点击: "+position[0]+","+position[1]);
-                                        RootShellCmd.simulateTap(position[0], position[1]);
-                                    }
-                            );
-                            try {
-                                Thread.sleep(200);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            distanceX += 1;
-                            FloatViewService.INSTANCE.updatPosition(distanceX, 0);
+
+
+                            RootShellCmd.simulateTap(position[0], position[1]);
+
                             return true;
 
-                        case KeyEvent.KEYCODE_7:
-                            decreaseVolume();
-                            break;
-                        case KeyEvent.KEYCODE_9:
-                            increaseVolume();
-                            break;
                         default:
                             return super.onKeyEvent(keyEvent);
                     }
 
                     FloatViewService.INSTANCE.updatPosition(distanceX * linming, distanceY * linming);
-                    Log.d(TAG, "distanceX= " + distanceX * linming + ",distanceY=" + distanceY * linming);
-                    FloatViewService.INSTANCE.printPosition();
+
                 }
                 return true;
-            },
-
-            //地下城模式
-            (keyEvent) -> {
-                return super.onKeyEvent(keyEvent);
             }
 
     );
 
     private String[] toastArr = {
             "普通模式",
-            "地下城模式"
+            "地下城模式",
+            "测量模式"
     };
 
     /**
@@ -181,6 +262,7 @@ public class KeyService extends AccessibilityService {
      */
     private boolean callPress = false;
     private long callPressTime = 0L;
+
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
         int key = event.getKeyCode();
@@ -215,7 +297,7 @@ public class KeyService extends AccessibilityService {
             return super.onKeyEvent(event);
         }
 
-        if (key == KeyEvent.KEYCODE_CALL && event.getAction() == ACTION_DOWN ) {
+        if (key == KeyEvent.KEYCODE_CALL && event.getAction() == ACTION_DOWN) {
             callPressTime = System.currentTimeMillis();
             callPress = true;
             return true;
@@ -224,7 +306,7 @@ public class KeyService extends AccessibilityService {
         if (key == KeyEvent.KEYCODE_CALL && event.getAction() == ACTION_UP) {
             callPress = false;
             //快速的按，说明是切换模式
-            if (System.currentTimeMillis()-callPressTime<200){
+            if (System.currentTimeMillis() - callPressTime < 200) {
                 openMapper = !openMapper;
                 ToastUtil.show("按键映射：" + (openMapper ? "开" : "关"));
             }
@@ -233,18 +315,16 @@ public class KeyService extends AccessibilityService {
 
 
         //按下call的时候按下*，则切换模式
-        if (key == KEYCODE_STAR && event.getAction() == ACTION_DOWN && callPress){
+        if (key == KEYCODE_STAR && event.getAction() == ACTION_DOWN && callPress) {
             Log.d(TAG, "切换模式了 ");
             modeIndex = (++modeIndex) % toastArr.length;
             ToastUtil.show(toastArr[modeIndex]);
             return true;
         }
-        if (key == KEYCODE_STAR && event.getAction() == ACTION_DOWN){
+        if (key == KEYCODE_STAR && event.getAction() == ACTION_DOWN) {
             //如果只是单纯的按下*，则不处理
-            return  super.onKeyEvent(event);
+            return super.onKeyEvent(event);
         }
-
-
 
 
         Log.d(TAG, "走处理了 ");
@@ -293,7 +373,6 @@ public class KeyService extends AccessibilityService {
     public void onCreate() {
         Log.d("key", "keyservice::onCreate");
         super.onCreate();
-
 
 
         // 获取系统音频管理器
